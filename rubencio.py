@@ -16,15 +16,15 @@ importlib.reload(sys)
 
 allowed_chars_puns = string.ascii_letters + " " + string.digits + "áéíóúàèìòùäëïöü"
 allowed_chars_triggers = allowed_chars_puns + "^$.*+?(){}\\[]<>=-"
-version = "0.7.0"
+version = "0.7.1"
 required_validations = 5
 
 if 'TOKEN' not in os.environ:
-    print("missing TOKEN.Leaving...")
+    print("Token faltante....")
     os._exit(1)
 
 if 'DBLOCATION' not in os.environ:
-    print("missing DB.Leaving...")
+    print("Base de datos faltante....")
     os._exit(1)
 
 bot = telebot.TeleBot(os.environ['TOKEN'])
@@ -49,16 +49,16 @@ def load_default_puns(dbfile='puns.db', punsfile='puns.txt'):
             if len(line.split('|')) == 2:
                 trigger = line.split('|')[0].strip()
                 if not is_valid_regex(trigger):
-                    print ("Incorrect regex trigger %s on line %s of file %s. Not added" % (trigger, str(number), punsfile))
+                    print ("Disparador de expresiones regulares incorrecto%s en la línea%s del archivo%s. No agregado" % (trigger, str(number), punsfile))
                 else:
                     pun = line.split('|')[1].strip()
                     answer = cursor.execute('''SELECT count(trigger) FROM puns WHERE pun = ? AND trigger = ? AND chatid = 0''', (pun, trigger,)).fetchone()
                     if answer[0] == 0:
                         cursor.execute('''INSERT INTO puns(uuid,chatid,trigger,pun) VALUES(?,?,?,?)''', (str(uuid.uuid4()), "0", trigger, pun))
                         db.commit()
-                        print ("Added default pun \"%s\" for trigger \"%s\"" % (pun, trigger))
+                        print ("Añadida combinación de palabras predeterminado \"%s\" para \"%s\"" % (pun, trigger))
             else:
-                print ("Incorrect line %s on file %s. Not added" % (str(number), punsfile))
+                print ("Línea% s incorrecta en el archivo% s. No agregada" % (str(number), punsfile))
     db.close()
 
 
@@ -157,23 +157,24 @@ def find_pun(message="", dbfile='puns.db'):
 
 @bot.message_handler(commands=['punshelp', 'help'])
 def help(message):
-    helpmessage = '''Those are the commands available
-    /punadd         Add a new pun (trigger|pun)
-    /pundel         Delete an existing pun (uuid)
-    /punlist        Lists all the puns for this chat (/list or /punslist)
-    /punapprove     Give +1 to a pun
-    /punban         Give -1 to a pun
-    /punsilence     Stop puns for specified minutes
-    /punset         Set the probability of answering with a pun (1-100)
-    /punshelp       This help (/help)
+    helpmessage = '''*Comandos Disponibles*
+/punadd - Agregar una combinación (palabra | combinación)
+/pundel - Eliminar combinación (palabra)
+/punlist - Lista de combinaciones
+/punapprove - Aprobar combinación
+/punban - Prohibir combinación
+/punsilence - Detener combinaciones durante minutos específicos
+/punset - Establecer la probabilidad de responder (1-100)
+/punshelp - Ayuda y Estado del bot
 
-    ** PunsBot muted on this channel until %s  **
-    ** Probability of answering with a pun: %s%% **
+Estado del bot:
+    ** PunsBot silenciado hasta%s  **
+    ** Probabilidad de responder: %s%% **
 
-    Puns will be enabled if karma is over %s on groups with more than %s people.
-    On groups with less people, only positive karma is required
+Las combinaciones de palabras se habilitarán si el karma supera% s en grupos con más de% s personas.
+    - En grupos con menos personas, solo se requiere karma positivo
 
-    Version: %s
+    Versiónn del bot: %s
     ''' % (silence_until(message.chat.id), efectivity(message.chat.id), required_validations, required_validations, version)
     bot.reply_to(message, helpmessage)
 
@@ -184,22 +185,22 @@ def approve(message):
     global punsdb
     quote = message.text.replace('/punapprove', '').strip()
     if quote == '':
-        bot.reply_to(message, 'Missing uuid to approve or invalid syntax: \"/punapprove \"pun uuid\"')
+        bot.reply_to(message, 'Falta la palabra para aprobar o sintaxis no válida: \"/punapprove \"palabra de la combinación\"')
         return
     db = sqlite3.connect(punsdb)
     cursor = db.cursor()
-    answer = cursor.execute('''SELECT count(uuid) FROM puns WHERE chatid = ? AND uuid = ?''', (message.chat.id, quote.strip(),)).fetchone()
+    answer = cursor.execute('''SELECT count(trigger) FROM puns WHERE chatid = ? AND trigger = ?''', (message.chat.id, quote.strip(),)).fetchone()
     if answer[0] != 1:
-        bot.reply_to(message, 'UUID ' + quote.strip() + ' not found')
+        bot.reply_to(message, 'UUID ' + quote.strip() + ' no encontrado')
     else:
         answer = cursor.execute('''SELECT count(punid) FROM validations WHERE chatid = ? AND punid = ? AND userid = ? and karma = 1''', (message.chat.id, quote.strip(), message.from_user.id)).fetchone()
         if answer[0] >= 1:
-            bot.reply_to(message, 'You have already approved ' + quote + '. Only one approve by user is allowed.')
+            bot.reply_to(message, 'Ya has aprobado ' + quote + '. Solo se permite una aprobación por usuario.')
         else:
             cursor.execute('''INSERT INTO validations(punid,chatid,userid,karma) VALUES(?,?,?,1)''', (quote.strip(), message.chat.id, message.from_user.id))
             db.commit()
             answer = cursor.execute('''SELECT SUM(karma) FROM validations WHERE chatid = ? AND punid = ?''', (message.chat.id, quote.strip())).fetchone()
-            bot.reply_to(message, 'Thanks for approve ' + quote.strip() + '. Pun karma is ' + str(answer[0]))
+            bot.reply_to(message, 'Gracias por elegir ' + quote.strip() + '. El karma es ' + str(answer[0]))
     db.close()
     return
 
@@ -210,22 +211,22 @@ def ban(message):
     global punsdb
     quote = message.text.replace('/punban', '').strip()
     if quote == '':
-        bot.reply_to(message, 'Missing uuid to ban or invalid syntax: \"/punban \"pun uuid\"')
+        bot.reply_to(message, 'Falta la palabra para prohibir o sintaxis no válida: \"/punban \"palabra de la combinación\"')
         return
     db = sqlite3.connect(punsdb)
     cursor = db.cursor()
-    answer = cursor.execute('''SELECT count(uuid) FROM puns WHERE chatid = ? AND uuid = ?''', (message.chat.id, quote.strip(),)).fetchone()
+    answer = cursor.execute('''SELECT count(trigger) FROM puns WHERE chatid = ? AND trigger = ?''', (message.chat.id, quote.strip(),)).fetchone()
     if answer[0] != 1:
-        bot.reply_to(message, 'UUID ' + quote.strip() + ' not found')
+        bot.reply_to(message, 'UUID ' + quote.strip() + ' no encontrado')
     else:
         answer = cursor.execute('''SELECT count(punid) FROM validations WHERE chatid = ? AND punid = ? AND userid = ? and karma = -1''', (message.chat.id, quote.strip(), message.from_user.id)).fetchone()
         if answer[0] >= 1:
-            bot.reply_to(message, 'You have already ban ' + quote + '. Only one ban by user is allowed.')
+            bot.reply_to(message, 'Ya has prohibido ' + quote + '. Solo se permite una prohibición por usuario.')
         else:
             cursor.execute('''INSERT INTO validations(punid,chatid,userid,karma) VALUES(?,?,?,-1)''', (quote.strip(), message.chat.id, message.from_user.id))
             db.commit()
             answer = cursor.execute('''SELECT SUM(karma) FROM validations WHERE chatid = ? AND punid = ?''', (message.chat.id, quote.strip())).fetchone()
-            bot.reply_to(message, 'Thanks for ban ' + quote.strip() + '. Pun karma is ' + str(answer[0]))
+            bot.reply_to(message, 'Gracias elegir' + quote.strip() + '. El karma es ' + str(answer[0]))
     db.close()
     return
 
@@ -236,15 +237,15 @@ def add(message):
     global punsdb
     quote = message.text.replace('/punadd', '')
     if quote == '' or len(quote.split('|')) != 2:
-        bot.reply_to(message, 'Missing pun or invalid syntax: \"/punadd \"pun trigger\"|\"pun\"')
+        bot.reply_to(message, 'Falta la combinación o sintaxis no válida: \"/punadd \"palabra\"|\"combinación\"')
         return
     trigger = quote.split('|')[0].strip()
     for character in trigger:
         if character not in allowed_chars_triggers:
-            bot.reply_to(message, 'Invalid character ' + character + ' in trigger, only letters and numbers are allowed')
+            bot.reply_to(message, 'Carácter Inválido ' + character + ' en la palabra, solo se permiten letras y números')
             return
     if not is_valid_regex(trigger):
-        bot.reply_to(message, 'Not valid regex ' + trigger + ' defined as trigger ')
+        bot.reply_to(message, 'Regex no válido ' + trigger + ' definida como palabra ')
         return
     pun = quote.split('|')[1].strip()
     db = sqlite3.connect(punsdb)
@@ -252,38 +253,39 @@ def add(message):
     answer = cursor.execute('''SELECT count(trigger) FROM puns WHERE trigger = ? AND chatid = ? AND pun = ?''', (trigger, message.chat.id, pun)).fetchone()
     db.commit()
     if answer[0] != 0:
-        bot.reply_to(message, 'A trigger with this pun already exists')
+        bot.reply_to(message, 'Ya existe una palabra con esta combinación')
     else:
         punid = uuid.uuid4()
         cursor.execute('''INSERT INTO puns(uuid,chatid,trigger,pun) VALUES(?,?,?,?)''', (str(punid), message.chat.id, trigger, pun))
         cursor.execute('''INSERT INTO validations(punid,chatid,userid,karma) VALUES(?,?,?,1)''', (str(punid), message.chat.id, message.from_user.id))
         db.commit()
+        #Arreglada el empledo del uuid al enviar el messaje del bot
         if bot.get_chat_members_count(message.chat.id) >= required_validations:
-            bot.reply_to(message, 'Pun ' + str(punid) + ' added to your channel. It have to be approved by ' + str(required_validations) + ' different people to be enabled on this chat')
+            bot.reply_to(message, 'Combinación **' + str(trigger) + '** agregada. Tiene que ser aprobada por ' + str(required_validations) + ' diferentes personas para ser habilitada')
         else:
-            bot.reply_to(message, 'Pun ' + str(punid) + ' added to your channel. Positive karma is required to enable pun on this chat')
+            bot.reply_to(message, 'Combinación **' + str(trigger) + '** agregada. Se requiere karma positivo para habilitar la combinación de palabras')
         print ("Pun \"%s\" with trigger \"%s\" added to channel %s" % (pun, trigger, message.chat.id))
     db.close()
     return
 
-
+#Arreglada la opcion de eliminar por el UUID
 @bot.message_handler(commands=['pundel'])
 def delete(message):
     global triggers
     global punsdb
     quote = message.text.replace('/pundel', '').strip()
     if quote == '':
-        bot.reply_to(message, 'Missing pun uuid to remove or invalid syntax: \"/pundel \"pun uuid\"')
+        bot.reply_to(message, 'Falta la palabra para eliminar o sintaxis no válida: \"/pundel \"palabra de la combinación\"')
         return
     db = sqlite3.connect(punsdb)
     cursor = db.cursor()
-    answer = cursor.execute('''SELECT count(uuid) FROM puns WHERE chatid = ? AND uuid = ?''', (message.chat.id, quote,)).fetchone()
+    answer = cursor.execute('''SELECT count(trigger) FROM puns WHERE chatid = ? AND trigger = ?''', (message.chat.id, quote,)).fetchone()
     db.commit()
     if answer[0] != 1:
-        bot.reply_to(message, 'UUID ' + quote + ' not found')
+        bot.reply_to(message, 'UUID ' + quote + ' no encontrado')
     else:
-        cursor.execute('''DELETE FROM puns WHERE chatid = ? and uuid = ?''', (message.chat.id, quote))
-        bot.reply_to(message, 'Pun deleted from your channel')
+        cursor.execute('''DELETE FROM puns WHERE chatid = ? and trigger = ?''', (message.chat.id, quote))
+        bot.reply_to(message, 'Combinación eliminada')
         db.commit()
         print ("Pun with UUID \"%s\" deleted from channel %s" % (quote, message.chat.id))
     db.close()
@@ -295,37 +297,37 @@ def silence(message):
     global punsdb
     quote = message.text.replace('/punsilence', '').strip()
     if quote == '' or not quote.isdigit():
-        bot.reply_to(message, 'Missing time to silence or invalid syntax: \"/punsilence "time in minutes"')
+        bot.reply_to(message, 'Falta el valor de tiempo para silenciar o sintaxis no válida: \"/punsilence "tiempo en minutos"')
         return
     if int(quote) > 60 or not quote.isdigit():
-        bot.reply_to(message, 'Disabling PunsBot for more than an hour is not funny 😢')
+        bot.reply_to(message, 'Desactivar a Rubencio durante más de una hora no es divertido ☹️')
         return
     chatoptions = load_chat_options(message.chat.id)
     if chatoptions['silence'] is None or int(chatoptions['silence']) <= int(time.time()):
         chatoptions['silence'] = 60 * int(quote) + int(time.time())
     else:
         if int(chatoptions['silence']) + 60 * int(quote) - int(time.time()) >= 3600:
-            bot.reply_to(message, 'Disabling PunsBot for more than an hour is not funny 😢')
+            bot.reply_to(message, 'Desactivar a Rubencio durante más de una hora no es divertido ☹️')
             return
         else:
             chatoptions['silence'] = 60 * int(quote) + int(chatoptions['silence'])
     set_chat_options(chatoptions)
-    bot.reply_to(message, 'PunsBot will be muted until ' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(chatoptions['silence'])))
+    bot.reply_to(message, 'Rubencio se silenciará hasta ' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(chatoptions['silence'])))
 
 
 @bot.message_handler(commands=['punset'])
 def set(message):
     quote = message.text.replace('/punset', '').strip()
     if quote == '' or int(quote) > 100 or int(quote) < 0 or not quote.isdigit():
-        bot.reply_to(message, 'Missing probability, out of range or invalid syntax: \"/punset "probability (1-100)"')
+        bot.reply_to(message, 'Probabilidad no encontrada, fuera de rango o sintaxis no válida: \"/punset "probabilidad (1-100)"')
         return
     elif quote == '0':
-        bot.reply_to(message, 'Probability cannot be 0, to disable punsbot during a period of time, use /punsilence"')
+        bot.reply_to(message, 'La probabilidad no puede ser 0, para deshabilitar a Rubencio durante un período de tiempo, use /punsilence"')
         return
     chatoptions = load_chat_options(message.chat.id)
     chatoptions['efectivity'] = int(quote)
     set_chat_options(chatoptions)
-    bot.reply_to(message, 'PunsBot will detect puns ' + quote + '% of the times')
+    bot.reply_to(message, 'Rubencio detectará las combinaciones ' + quote + '% del tiempo')
 
 
 @bot.message_handler(commands=['list', 'punlist', 'punslist'])
@@ -370,7 +372,7 @@ def list(message):
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "Lets do some pun jokes, use /punshelp for help")
+    bot.reply_to(message, "Vamos a divertirnos un rato, con /punshelp puede obtener ayuda.")
 
 
 @bot.message_handler(func=lambda m: True)
