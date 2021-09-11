@@ -20,7 +20,7 @@ _Ir al [repo official](https://github.com/morenod/punsBot) para ver los [prerequ
 
 - _Para iniciar el bot en un chat, agregue el contacto [@rubencio_bot](https://telegram.me/rubencio_bot) en él._
 
-- _Para ver las combinaciones disponibles, ejecute **/list** o **/punslist**, se enumerarán las combinaciones predeterminadas, disponibles para todos los chats, y juegos de palabras específicos, agregados en su canal._
+- _Para ver las combinaciones disponibles, ejecute **/list** o **/punslist**, se enumerarán las combinaciones predeterminadas, disponibles para todos los chats, y combinaciones específicas, agregados en su canal._
 
 - _Para agregar una nueva combinacón, ejecute **/punadd** seguido de la palabra o número utilizado para ser detectado por el bot, un **"|"** char como separador y la combinación, por ejemplo:_
 
