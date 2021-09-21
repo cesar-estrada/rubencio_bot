@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import importlib
-
 import telebot
 import os
 import sqlite3
@@ -16,8 +15,8 @@ importlib.reload(sys)
 
 allowed_chars_puns = string.ascii_letters + " " + string.digits + "áéíóúàèìòùäëïöü"
 allowed_chars_triggers = allowed_chars_puns + "^$.*+?(){}\\[]<>=-"
-version = "0.7.1"
-required_validations = 5
+version = "0.7.2"
+required_validations = 1
 
 if 'TOKEN' not in os.environ:
     print("Token faltante....")
@@ -87,7 +86,7 @@ def silence_until(chatid=""):
     db = sqlite3.connect(punsdb)
     cursor = db.cursor()
     answer = cursor.execute('''SELECT silence from chatoptions where chatid = ?''', (chatid,)).fetchone()
-    return str(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(answer[0]))) if answer is not None and answer[0] is not None and int(time.time()) < int(answer[0]) else "Never"
+    return str(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(answer[0]))) if answer is not None and answer[0] is not None and int(time.time()) < int(answer[0]) else "--"
 
 
 def load_chat_options(chatid=""):
@@ -155,37 +154,42 @@ def find_pun(message="", dbfile='puns.db'):
         return None if answer_list == [] else random.choice(answer_list)
 
 
-@bot.message_handler(commands=['punshelp', 'help'])
+@bot.message_handler(commands=['rhelp'])
 def help(message):
     helpmessage = '''*Comandos Disponibles*
-/punadd - Agregar una combinación (palabra | combinación)
-/pundel - Eliminar combinación (palabra)
-/punlist - Lista de combinaciones
-/punapprove - Aprobar combinación
-/punban - Prohibir combinación
-/punsilence - Detener combinaciones durante minutos específicos
-/punset - Establecer la probabilidad de responder (1-100)
-/punshelp - Ayuda y Estado del bot
+/radd - Agregar una combinación (palabra | combinación)
+/rdel - Eliminar combinación (palabra)
+/rsi - Aprobar combinación
+/rno - Prohibir combinación
+/rset - Establecer la probabilidad de responder (1-100)
+/rchat - Ver estado del chat
+/rhelp - Ayuda y Estado del bot
 
-Estado del bot:
-    ** PunsBot silenciado hasta%s  **
-    ** Probabilidad de responder: %s%% **
-
-Las combinaciones de palabras se habilitarán si el karma supera% s en grupos con más de% s personas.
+Las combinaciones de palabras se habilitarán si el karma supera % s en grupos con más de % s personas.
     - En grupos con menos personas, solo se requiere karma positivo
 
     Versiónn del bot: %s
-    ''' % (silence_until(message.chat.id), efectivity(message.chat.id), required_validations, required_validations, version)
+    ''' % (required_validations, required_validations, version)
     bot.reply_to(message, helpmessage)
 
+@bot.message_handler(commands=['rchat'])
+def status(message):
+    statusmessage = '''*Estado del Chat*
 
-@bot.message_handler(commands=['punapprove'])
+    - Rubencio silenciado hasta %s
+    - Probabilidad de responder: %s%%
+    - Karma % s
+
+    ''' % (silence_until(message.chat.id), efectivity(message.chat.id), str(required_validations))
+    bot.reply_to(message, statusmessage)
+
+@bot.message_handler(commands=['rsi'])
 def approve(message):
     global triggers
     global punsdb
-    quote = message.text.replace('/punapprove', '').strip()
+    quote = message.text.replace('/rsi', '').strip()
     if quote == '':
-        bot.reply_to(message, 'Falta la palabra para aprobar o sintaxis no válida: \"/punapprove \"palabra de la combinación\"')
+        bot.reply_to(message, 'Falta la palabra para aprobar o sintaxis no válida: \"/rsi \"palabra de la combinación\"')
         return
     db = sqlite3.connect(punsdb)
     cursor = db.cursor()
@@ -205,13 +209,13 @@ def approve(message):
     return
 
 
-@bot.message_handler(commands=['punban'])
+@bot.message_handler(commands=['rno'])
 def ban(message):
     global triggers
     global punsdb
-    quote = message.text.replace('/punban', '').strip()
+    quote = message.text.replace('/rno', '').strip()
     if quote == '':
-        bot.reply_to(message, 'Falta la palabra para prohibir o sintaxis no válida: \"/punban \"palabra de la combinación\"')
+        bot.reply_to(message, 'Falta la palabra para prohibir o sintaxis no válida: \"/rno \"palabra de la combinación\"')
         return
     db = sqlite3.connect(punsdb)
     cursor = db.cursor()
@@ -231,13 +235,13 @@ def ban(message):
     return
 
 
-@bot.message_handler(commands=['punadd'])
+@bot.message_handler(commands=['radd'])
 def add(message):
     global triggers
     global punsdb
-    quote = message.text.replace('/punadd', '')
+    quote = message.text.replace('/radd', '')
     if quote == '' or len(quote.split('|')) != 2:
-        bot.reply_to(message, 'Falta la combinación o sintaxis no válida: \"/punadd \"palabra\"|\"combinación\"')
+        bot.reply_to(message, 'Falta la combinación o sintaxis no válida: \"/radd \"palabra\"|\"combinación\"')
         return
     trigger = quote.split('|')[0].strip()
     for character in trigger:
@@ -269,13 +273,13 @@ def add(message):
     return
 
 #Arreglada la opcion de eliminar por el UUID
-@bot.message_handler(commands=['pundel'])
+@bot.message_handler(commands=['rdel'])
 def delete(message):
     global triggers
     global punsdb
-    quote = message.text.replace('/pundel', '').strip()
+    quote = message.text.replace('/rdel', '').strip()
     if quote == '':
-        bot.reply_to(message, 'Falta la palabra para eliminar o sintaxis no válida: \"/pundel \"palabra de la combinación\"')
+        bot.reply_to(message, 'Falta la palabra para eliminar o sintaxis no válida: \"/rdel \"palabra de la combinación\"')
         return
     db = sqlite3.connect(punsdb)
     cursor = db.cursor()
@@ -292,12 +296,12 @@ def delete(message):
     return
 
 
-@bot.message_handler(commands=['punsilence'])
+@bot.message_handler(commands=['roff'])
 def silence(message):
     global punsdb
-    quote = message.text.replace('/punsilence', '').strip()
+    quote = message.text.replace('/roff', '').strip()
     if quote == '' or not quote.isdigit():
-        bot.reply_to(message, 'Falta el valor de tiempo para silenciar o sintaxis no válida: \"/punsilence "tiempo en minutos"')
+        bot.reply_to(message, 'Falta el valor de tiempo para silenciar o sintaxis no válida: \"/roff "tiempo en minutos"')
         return
     if int(quote) > 60 or not quote.isdigit():
         bot.reply_to(message, 'Desactivar a Rubencio durante más de una hora no es divertido ☹️')
@@ -315,14 +319,14 @@ def silence(message):
     bot.reply_to(message, 'Rubencio se silenciará hasta ' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(chatoptions['silence'])))
 
 
-@bot.message_handler(commands=['punset'])
+@bot.message_handler(commands=['rset'])
 def set(message):
-    quote = message.text.replace('/punset', '').strip()
+    quote = message.text.replace('/rset', '').strip()
     if quote == '' or int(quote) > 100 or int(quote) < 0 or not quote.isdigit():
-        bot.reply_to(message, 'Probabilidad no encontrada, fuera de rango o sintaxis no válida: \"/punset "probabilidad (1-100)"')
+        bot.reply_to(message, 'Probabilidad no encontrada, fuera de rango o sintaxis no válida: \"/rset "probabilidad (1-100)"')
         return
     elif quote == '0':
-        bot.reply_to(message, 'La probabilidad no puede ser 0, para deshabilitar a Rubencio durante un período de tiempo, use /punsilence"')
+        bot.reply_to(message, 'La probabilidad no puede ser 0, para deshabilitar a Rubencio durante un período de tiempo, use /rset"')
         return
     chatoptions = load_chat_options(message.chat.id)
     chatoptions['efectivity'] = int(quote)
@@ -330,7 +334,7 @@ def set(message):
     bot.reply_to(message, 'Rubencio detectará las combinaciones ' + quote + '% del tiempo')
 
 
-@bot.message_handler(commands=['list', 'punlist', 'punslist'])
+@bot.message_handler(commands=['rl'])
 def list(message):
     index = "| uuid | status (karma) | trigger | pun\n"
     puns_list = ""
@@ -372,7 +376,7 @@ def list(message):
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "Vamos a divertirnos un rato, con /punshelp puede obtener ayuda.")
+    bot.reply_to(message, "Vamos a divertirnos un rato (/rhelp) para obtener ayuda.")
 
 
 @bot.message_handler(func=lambda m: True)
@@ -385,5 +389,5 @@ def echo_all(message):
 
 punsdb = os.path.expanduser(os.environ['DBLOCATION'])
 db_setup(dbfile=punsdb)
-print ("PunsBot %s ready for puns!" % (version))
+print ("Rubencio %s ready for puns!" % (version))
 bot.polling(none_stop=True)
