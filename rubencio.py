@@ -159,6 +159,7 @@ def help(message):
     helpmessage = '''*Comandos Disponibles*
 /radd - Agregar una combinación (palabra | combinación)
 /rdel - Eliminar combinación (palabra)
+/rlist - Lista de combinaciones
 /rsi - Aprobar combinación
 /rno - Prohibir combinación
 /rset - Establecer la probabilidad de responder (1-100)
