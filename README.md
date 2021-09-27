@@ -52,7 +52,7 @@ _Este disparador detectará todas las palabras terminadas en ado, como Abogado, 
 
 ## Licencia 📄
 
-Este proyecto está bajo la Licencia (MIT License) - mira el archivo [LICENSE.md](LICENSE.md) para detalles.
+Este proyecto está bajo la Licencia ( GPL-3.0 License) - mira el archivo [LICENSE](LICENSE) para detalles.
 
 
 
