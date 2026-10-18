@@ -1,0 +1,538 @@
+# ════════════════════════════════════════════════════════════════
+# PUNS CLÁSICOS (primera version)
+# ════════════════════════════════════════════════════════════════
+rubencio | Tú sufres con lo que yo gozo
+rubencio | 12 + 1
+pasar | Me la querrás besar?
+sobuco | Mi pingo como un trabuco
+cinco | Por el culo te la hinco
+mar[cs]elo | Te la meto hasta el cielo
+nueve | Singa rápido que llueve
+9 | Y a mi me mide 29
+gringo | El que te la mete el viernes y te la saca el domingo
+ocho | Pa tu culo mi pinocho
+nueve | En tu culo se me mueve
+cuatro | Pa tu culo mi aparato
+tar[gj]eta | Te la paso entre la teta
+13 | Mientras más me la mama más me crece
+13 | Si me singo a tu hermana qué te parece
+13 | Agáchese para que me la bese
+13 | Aquí la tiene pa que la bese
+13 | Está sabrosa, Se te apetece?
+13 | Contigo desde temprano hasta que anochece
+13 | Si me la chupas se te agradece
+13 | No te hace rico pero no empobrece
+13 | No te hace inteligente pero ni embrutece
+13 | Algo se me endurece
+13 | En 4 toas las vece, qué te parece?
+13 | Te noto caliente qué se te ofrece?
+[bv]e[sc]es | Trae un martillo pa que me la enderece
+[bv]e[sc]es | Aquí la tengo pa cuando te estreses
+tre[sc]e | Mientras más me la mama más me crece
+notas | Airecillo en las pelotas
+fiesta | La que de va a dar esta
+rebote | En tu cara mi bichote
+5 | Por el culo te la hinco
+8 | Pa tu culo mi pinocho
+9 | En tu culo se me mueve
+carlos | El de los cojones largos
+indio | El que te llenó el culo de flecha
+rene | El que te la metió y se fue
+hambre | Aqui hay fiambre
+^.*llon$ | Cómeme el pollón
+^.*u[ck]a$ | Mis cojones con peluca
+^.*uco$ | Se me puso como un trabuco
+^.*ado$ | El que tengo aqui colgado
+^.*ulo$ | Pa tu culo mi pirulo
+^.*ino$ | Pa tu culo mi pepino
+^.*ato$ | Por tu culo mi aparato
+^.*ote$ | Pa tu culo mi bichote
+^.*ito$ | Cómeme to el pito
+^.*esta$ | Pues tira de esta
+^.*esta$ | La que te va a dar esta
+^.*upo$ | En tu culo te escupo
+^.*ivo$ | En el día duermo y en la noche activo
+^.*ones$ | En tu boca vacié mis cojones
+^.*acias$ | Eres tan guarra que nunca te sacias
+^.*acias$ | Encuérate y ocurrirán desgracias
+^.*acias$ | Tú en cuatro, esas son las circunstancias
+^.*acias$ | Escríbeme al privado, te tengo unas sutancias
+gra[sc]ias | No hay de que
+gra[sc]ias | De nada
+gra[sc]ias | You Welcome
+^.*ena$ | Mi polla con melena
+^.*etas | Pues enséñame las tetas
+^.*eta$ | A tu jeva le chupé una teta
+^.*ece | Agárramela que me crece
+^.*ulta | Por ésta que me abulta
+^.*urso$ | El de levantar mi polla a pulso?
+^.*ecto$ | Duro por tu recto
+^.*ima$ | Las tetas de mi prima
+^.*ano$ | Me la agarra con la mano
+^.*ajo$ | En tu boca mi carajo
+^.*ajo$ | En tu cara mi estropajo
+^.*oca$ | La que te gusta en tu boca
+^.*ita | Bebe que sale fresquita
+^.*inas | Si me la chupas te encaminas
+^.*alte | A chuparmela mientras aguante
+^.*dar$ | Mi polla en tu paladar
+^.*edra$ | Chupa que medra!!
+^.*ente$ | Mi polla en tu frente
+^.*brel$ | Tus nalgas son mi hotel
+^.*jena$ | Por tu culo mi berenjena
+^.*adro$ | Por tu culo mi taladro
+^.*ujo$ | Por el culo te la estrujo
+^.*vasco$ | El que te deja el culo hecho un asco
+^.*foto$ | Mis cojones en moto
+^.*ismo$ | Un huevo colgado y el otro lo mismo
+^.*a[vb]io$ | Te la pasé por el labio
+^.*ir$ | Vente pa mi casa.Te quieres venir?
+^.*ir$ | Toca aquí pa que la puedas sentir
+^.*ir$ | Si vienes conmigo te puedes morir
+^.*ir$ | Si lo que quieres es sexo me lo puedes pedir
+^.*ir$ | Ven que te voy a seducir
+^.*ir$ | A lo que tengo colgado no te vas a resistir
+pega | Pero arde
+pega | Igual me chupé a tu jeva
+rima | Pero arde
+
+# ════════════════════════════════════════════════════════════════
+# AGRADECIMIENTOS
+# ════════════════════════════════════════════════════════════════
+gra[sc]ias|No hay de que
+gra[sc]ias|De nada
+gra[sc]ias|You Welcome
+gra[sc]ias|A ti por chuparla
+gra[sc]ias|De nada, mi amor
+gra[sc]ias|Cuando quieras otra cosa me dices
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -LLON / -LLONA
+# ════════════════════════════════════════════════════════════════
+^.*llon$|Cómeme el pollón
+^.*llona$|Bájate los pantalones y chúpame la pol... lona
+^.*ollón$|El de tu hermana el melocotón
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -UCA / -UCO
+# ════════════════════════════════════════════════════════════════
+^.*u[ck]a$|Mis cojones con peluca
+^.*uco$|Se me puso como un trabuco
+^.*uco$|El de tu vecino el bizco
+^.*uca$|Chúpame la que te columpia
+^.*[lr]uco$|Mi polla como un trabuco
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ADO / -ADA
+# ════════════════════════════════════════════════════════════════
+^.*ado$|El que tengo aqui colgado
+^.*ado$|El que tengo aquí pelado
+^.*ado$|El que te deja el culo colorado
+^.*ado$|Si me lo pides bien, te lo doy doblado
+^.*ado$|Chúpamelo despacio, no seas apurado
+^.*ado$|El de tu madre el colorado
+^.*ada$|La que te va a dar esta noche
+^.*ada$|En tu boca, mi morcillada
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ULO / -ULA
+# ════════════════════════════════════════════════════════════════
+^.*ulo$|Pa tu culo mi pirulo
+^.*ulo$|Por el culo te la pulo
+^.*ulo$|En tu culo el módulo
+^.*ulo$|Metida hasta el bulbo
+^.*ula$|Chúpame esta, mi gordula
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -INO / -INA / -INAS
+# ════════════════════════════════════════════════════════════════
+^.*ino$|Pa tu culo mi pepino
+^.*ino$|En tu culo mi comino
+^.*ino$|El de tu vecino el chiquirritín
+^.*inas$|Si me la chupas te encaminas
+^.*inas$|Si te la meto, me lo empinas
+^.*ina$|Méteme la puntita, que es chiquitina
+^.*ina$|Como tu prima la bailarina
+^.*ino$|Aquí la tengo, mi tocino
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ATO / -ATA
+# ════════════════════════════════════════════════════════════════
+^.*ato$|Por tu culo mi aparato
+^.*ato$|El que te mete el gato
+^.*ato$|Chupa que es un delato
+^.*ata$|Por tu culo mi garrapata
+^.*ata$|Métemela entera, mi chata
+^.*ata$|A cuatro patas, la patata
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -OTE / -OTA
+# ════════════════════════════════════════════════════════════════
+^.*ote$|Pa tu culo mi bichote
+^.*ote$|Por el culo mi cogote
+^.*ote$|Chúpame el guirloche
+^.*ote$|El que te meto en el bigote
+^.*ota$|Chúpame esta, mi bellota
+^.*ota$|En tu cara, mi pelota
+^.*ote$|El de tu padre el monigote
+^.*ote$|Mi polla en tu cogote
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ITO / -ITA
+# ════════════════════════════════════════════════════════════════
+^.*ito$|Cómeme to el pito
+^.*ito$|Si te la meto, me lo chupitas
+^.*ito$|El que te meto, chiquitito
+^.*ita$|Bebe que sale fresquita
+^.*ita$|Chúpame la puntita
+^.*ito$|En tu boca mi gordito
+^.*ito$|Chúpame el rabito
+^.*ito$|Mi polla en tu chochito
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ESTA / -ESTE
+# ════════════════════════════════════════════════════════════════
+^.*esta$|Pues tira de esta
+^.*esta$|La que te va a dar esta
+^.*esta$|Chúpame esta, no seas bestia
+^.*este$|Chúpame este, y no molestes
+^.*esta$|Métemela en la cesta
+^.*este$|Mi polla en tu hueste
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -UPO / -UPA
+# ════════════════════════════════════════════════════════════════
+^.*upo$|En tu culo te escupo
+^.*upo$|Chúpame, que me ocupo
+^.*upo$|El que te meto en el grupo
+^.*upa$|En tu culo la culpa
+^.*upo$|Mi polla en tu grupo
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -IVO / -IVA
+# ════════════════════════════════════════════════════════════════
+^.*ivo$|En el día duermo y en la noche activo
+^.*ivo$|Chúpame despacio que estoy pasivo
+^.*ivo$|Métemela mientras estoy cautivo
+^.*iva$|Ven pa acá, que estoy activa
+^.*ivo$|Mi polla es tu motivo
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ONES
+# ════════════════════════════════════════════════════════════════
+^.*ones$|En tu boca vacié mis cojones
+^.*ones$|Chúpame los dos melones
+^.*ones$|Saca los dos cañones
+^.*ones$|Mis huevos son dos balones
+^.*ones$|Por el culo, sin condones
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ACIAS
+# ════════════════════════════════════════════════════════════════
+^.*acias$|Eres tan guarra que nunca te sacias
+^.*acias$|Encuérate y ocurrirán desgracias
+^.*acias$|Tú en cuatro, esas son las circunstancias
+^.*acias$|Escríbeme al privado, te tengo unas sustancias
+^.*acias$|Tú en pelotas, esas son mis ganancias
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ENA / -ENO
+# ════════════════════════════════════════════════════════════════
+^.*ena$|Mi polla con melena
+^.*ena$|Méteme la balena
+^.*ena$|Como tu madre, la morena
+^.*eno$|Mi polla en tu terreno
+^.*eno$|Chúpame mientras ceno
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ETAS / -ETA
+# ════════════════════════════════════════════════════════════════
+^.*etas|Pues enséñame las tetas
+^.*eta$|A tu jeva le chupé una teta
+^.*eta$|Méteme la puntita, es discreta
+^.*etas$|Tú las tienes bien completas
+^.*eta$|Chúpame esta, mi coqueta
+^.*etas$|Enséñame esas dos tetas
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ECE / -ECES
+# ════════════════════════════════════════════════════════════════
+^.*ece|Agárramela que me crece
+^.*ece|Chúpame que se me estremece
+^.*ece|Mi polla en tu pece
+^.*ece|Métemela mientras se cuece
+^.*ece|El que te meto y se le aparece
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ULTA / -ULTO
+# ════════════════════════════════════════════════════════════════
+^.*ulta|Por ésta que me abulta
+^.*ulta|En tu boca, mi catapulta
+^.*ulto$|Chupa que es un insulto
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -URSO
+# ════════════════════════════════════════════════════════════════
+^.*urso$|El de levantar mi polla a pulso?
+^.*urso$|En tu boca mi discurso
+^.*urso$|Chúpame mientras curso
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ECTO / -ECTA
+# ════════════════════════════════════════════════════════════════
+^.*ecto$|Duro por tu recto
+^.*ecto$|Mi polla en tu esecto
+^.*ecto$|El que te meto en el recto
+^.*ecta$|Chúpame esta, mi correcta
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -IMA / -IMO
+# ════════════════════════════════════════════════════════════════
+^.*ima$|Las tetas de mi prima
+^.*ima$|Chúpame esta, mi estima
+^.*ima$|La que te sube la adrenalina
+^.*imo$|Mi polla es tu destino
+^.*ima$|Métemela en la cima
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ANO / -ANA
+# ════════════════════════════════════════════════════════════════
+^.*ano$|Me la agarra con la mano
+^.*ano$|Chúpame el gusano
+^.*ano$|El que te meto en el ano
+^.*ana$|Como tu hermana la marrana
+^.*ano$|Mi polla en tu verano
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -AJO / -AJA
+# ════════════════════════════════════════════════════════════════
+^.*ajo$|En tu boca mi carajo
+^.*ajo$|En tu cara mi estropajo
+^.*ajo$|Chúpame el pincho bajo
+^.*aja$|Por tu culo mi mortaja
+^.*ajo$|Mi polla en tu tajo
+^.*ajo$|Métemela en el escondrijo... bajo
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -OCA / -OCO
+# ════════════════════════════════════════════════════════════════
+^.*oca$|La que te gusta en tu boca
+^.*oca$|Métemela en la boca
+^.*oca$|Como tu prima la loca
+^.*oco$|Chúpame to el cocol
+^.*oco$|Mi polla es un buen moco
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ALTE
+# ════════════════════════════════════════════════════════════════
+^.*alte|A chuparmela mientras aguante
+^.*alte|Chúpame hasta que me falte
+^.*alte|Mi polla en tu cobalte
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -DAR
+# ════════════════════════════════════════════════════════════════
+^.*dar$|Mi polla en tu paladar
+^.*dar$|Chúpame sin protestar
+^.*dar$|En tu boca voy a acabar
+^.*dar$|Métemela y no llorar
+^.*dar$|Chúpame pa celebrar
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -EDRA / -EDRO
+# ════════════════════════════════════════════════════════════════
+^.*edra$|Chupa que medra!!
+^.*edra$|En tu culo mi piedra
+^.*edro$|Chúpame, mi pederdo
+^.*edro$|El que te meto en el cuadro
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ENTE
+# ════════════════════════════════════════════════════════════════
+^.*ente$|Mi polla en tu frente
+^.*ente$|Chúpame que estoy caliente
+^.*ente$|Métemela, que soy valiente
+^.*ente$|En tu culo, dulcemente
+^.*ente$|Mi polla en tu ambiente
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -BREL / -BRE
+# ════════════════════════════════════════════════════════════════
+^.*brel$|Tus nalgas son mi hotel
+^.*brel$|Chúpame, que te va bien
+^.*brel$|Métemela en tu broquel
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -JENA / -JENO
+# ════════════════════════════════════════════════════════════════
+^.*jena$|Por tu culo mi berenjena
+^.*jena$|Chúpame esta, mi alhajena
+^.*jeno$|Mi polla en tu terreno ajeno
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ADRO / -ADRA
+# ════════════════════════════════════════════════════════════════
+^.*adro$|Por tu culo mi taladro
+^.*adro$|Chúpame to el candado
+^.*adro$|Métemela con cuidado... no, con el taladro
+^.*adra$|En tu boca mi cantadra
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -UJO / -UJA
+# ════════════════════════════════════════════════════════════════
+^.*ujo$|Por el culo te la estrujo
+^.*ujo$|Chúpame to el condujo
+^.*ujo$|Métemela, que se me empuja
+^.*uja$|En tu boca la aguja
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -VASCO / -ASCO
+# ════════════════════════════════════════════════════════════════
+^.*vasco$|El que te deja el culo hecho un asco
+^.*vasco$|Chúpame, mi chivasco
+^.*asco$|Mi polla te deja el culo hecho un asco
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -FOTO / -FOTA
+# ════════════════════════════════════════════════════════════════
+^.*foto$|Mis cojones en moto
+^.*foto$|Chúpame y te hago una foto
+^.*foto$|Mi polla en tu chocho remoto
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ISMO / -ISMA
+# ════════════════════════════════════════════════════════════════
+^.*ismo$|Un huevo colgado y el otro lo mismo
+^.*ismo$|Chúpame y me hago el harakiri... mismo
+^.*ismo$|Mi polla es tu realismo
+^.*isma$|En tu culo mi carisma
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -AVIO / -ABIO
+# ════════════════════════════════════════════════════════════════
+^.*a[vb]io$|Te la pasé por el labio
+^.*a[vb]io$|Chúpame to el agravio
+^.*a[vb]io$|Métemela en el labio
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -IR (verbos)
+# ════════════════════════════════════════════════════════════════
+^.*ir$|Vente pa mi casa.Te quieres venir?
+^.*ir$|Toca aquí pa que la puedas sentir
+^.*ir$|Si vienes conmigo te puedes morir
+^.*ir$|Si lo que quieres es sexo me lo puedes pedir
+^.*ir$|Ven que te voy a seducir
+^.*ir$|A lo que tengo colgado no te vas a resistir
+^.*ir$|Abrázame fuerte y déjate ir
+^.*ir$|Chúpame despacio, sin discutir
+^.*ir$|Si te portas bien, te dejo repetir
+^.*ir$|Ven pa acá, que te voy a hundir
+^.*ir$|En cuatro patas, te vas a rendir
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -AR (verbos)
+# ════════════════════════════════════════════════════════════════
+^.*ar$|Mi polla en tu paladar
+^.*ar$|Chúpame sin protestar
+^.*ar$|Si te portas bien, te voy a chupar
+^.*ar$|Tú en cuatro y yo a empujar
+^.*ar$|Ven pa acá, que vamos a follar
+^.*ar$|Métemela y no llorar
+^.*ar$|Toda la noche sin parar
+^.*ar$|Chúpame y te dejo tragar
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ER (verbos)
+# ════════════════════════════════════════════════════════════════
+^.*er$|Mi polla te vas a comer
+^.*er$|Chúpame hasta enloquecer
+^.*er$|Métemela y no joder
+^.*er$|Si te portas bien, te voy a hacer
+^.*er$|Ven pa acá, que quiero ver
+^.*er$|En cuatro patas te vas a mecer
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -OR / -ORA
+# ════════════════════════════════════════════════════════════════
+^.*or$|Chúpame con todo el amor
+^.*or$|Mi polla es tu mejor sabor
+^.*or$|En tu boca, qué calor
+^.*ora$|Métemela ahora
+^.*ora$|Chúpame, mi señora
+^.*or$|Mi polla en tu interior
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -AL / -ALES
+# ════════════════════════════════════════════════════════════════
+^.*al$|Mi polla en tu portal
+^.*al$|Chúpame que sabe bien, colega
+^.*ales$|Chúpame que sabe a mieles
+^.*al$|Métemela, que es la señal
+^.*al$|Mi polla es un manjar celestial
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ON / -ONA
+# ════════════════════════════════════════════════════════════════
+^.*ón$|Mi polla en tu corazón
+^.*ón$|Chúpame con devoción
+^.*ón$|Métemela con pasión
+^.*ona$|En tu boca, mi coronación
+^.*ón$|El que tengo aquí es un cañón
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -AZO / -AZA
+# ════════════════════════════════════════════════════════════════
+^.*azo$|Chúpame to el buenazo
+^.*azo$|Métemela y te la rechazo
+^.*azo$|En tu culo, qué mazazo
+^.*aza$|Por tu culo mi terraza
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ILLO / -ILLA
+# ════════════════════════════════════════════════════════════════
+^.*illo$|Chúpame to el puntillo
+^.*illo$|Mi polla en tu pasillo
+^.*illa$|Métemela en la rodilla
+^.*illo$|En tu boca, mi pasillo
+
+# ════════════════════════════════════════════════════════════════
+# POR TERMINACIÓN EN -ERO / -ERA
+# ════════════════════════════════════════════════════════════════
+^.*ero$|Chúpame to el carnicero
+^.*ero$|Mi polla en tu agujero
+^.*era$|Métemela, que soy primera
+^.*ero$|En tu boca, mi reguero
+
+# ════════════════════════════════════════════════════════════════
+# PALABRAS SUELTAS CON DOBLE SENTIDO
+# ════════════════════════════════════════════════════════════════
+pito|Cómeme to el pito
+polla|Chúpame la polla
+cojones|En tu boca mis cojones
+huevos|Chúpame los dos huevos
+nalgas|Mueve esas nalgas
+tetas|Enséñame esas tetas
+culo|En tu culo mi pepito
+verga|Chúpame la verga
+picha|Méteme la picha
+pingo|Mi pingo como un trabuco
+chocho|Chúpame el chochito
+rabo|Méteme to el rabo
+bicho|Chúpame to el bicho
+pene|Mi pene en tu paladar
+mama|Chúpame, mamá
+papá|Métemela, papá
+tito|Chúpame el titito
+pan|Mi polla como un flan
+salchicha|Chúpame la salchicha
+chorizo|Méteme to el chorizo
+plátano|Méteme el plátano
+pepino|Pa tu culo mi pepino
+zanahoria|Méteme la zanahoria
+bombón|Chúpame el bombón
+caramelo|Méteme el caramelo
+chupete|Chúpame to el chupete
+
+# ════════════════════════════════════════════════════════════════
+# FIN DEL ARCHIVO
+# ════════════════════════════════════════════════════════════════
