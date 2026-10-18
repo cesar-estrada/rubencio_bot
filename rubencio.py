@@ -3,15 +3,20 @@
 Rubencio Bot — Bot de combinaciones de palabras (puns) para Telegram.
 
 Comandos:
-    /radd  palabra|combinación   Agrega un pun (devuelve UUID)
-    /rdel  <uuid|trigger>        Elimina un pun y sus validaciones
+    /radd  palabra|combinación   Agrega un pun (admin)
+    /rdel  <uuid|palabra>        Elimina un pun (admin)
     /rlist                       Lista paginada de puns
     /rsi   <uuid>                Aprueba un pun (+1 karma)
     /rno   <uuid>                Prohíbe un pun (-1 karma)
-    /rset  <1-100>               Probabilidad de responder
-    /roff  <minutos>             Silencia el bot temporalmente
+    /rset  <1-100>               Probabilidad de responder (admin)
+    /roff  <minutos>             Silencia el bot (admin)
     /rchat                       Estado del chat
     /rhelp                       Ayuda
+
+Variables de entorno:
+    TOKEN            (requerido) Token de @BotFather
+    DBLOCATION       (requerido) Ruta al archivo SQLite
+    REQUIRE_ADMIN    (opcional) "0" desactiva la comprobación de admin
 """
 from __future__ import annotations
 
@@ -23,70 +28,95 @@ import uuid
 import random
 import string
 import sqlite3
+import logging
+import secrets
 import unicodedata
 from contextlib import contextmanager
 from html import escape as html_escape
 
 import telebot
 
+# Timeout de regex (librería opcional pero muy recomendada)
+try:
+    import regex as regex_engine
+    HAS_REGEX_TIMEOUT = True
+except ImportError:
+    regex_engine = re
+    HAS_REGEX_TIMEOUT = False
+
 
 # ════════════════════════════════════════════════════════════════
 # CONFIGURACIÓN
 # ════════════════════════════════════════════════════════════════
-VERSION              = "0.8.0"
-REQUIRED_VALIDATIONS = 1
-MAX_SILENCE_MINUTES  = 60
-MAX_MESSAGE_LENGTH   = 4000
-DEFAULT_PUNS_DIR     = "./defaultpuns/punsfiles"
+VERSION               = "0.9.0"
+REQUIRED_VALIDATIONS  = 1
+MAX_SILENCE_MINUTES   = 60
+MAX_MESSAGE_LENGTH    = 4000
+MAX_TRIGGER_LEN       = 50
+MAX_PUN_LEN           = 300
+MAX_TRIGGERS_PER_CHAT = 100
+MAX_LAST_WORD_LEN     = 100
+MAX_GROUPS_IN_REGEX   = 5
+RATE_WINDOW           = 60         # segundos
+RATE_MAX_ADMIN        = 10         # comandos admin por minuto
+RATE_MAX_VOTE         = 5          # votos por minuto
+REGEX_TIMEOUT         = 0.1        # segundos
+DEFAULT_PUNS_DIR      = "./defaultpuns/punsfiles"
 
 ALLOWED_CHARS_PUNS     = string.ascii_letters + " " + string.digits + "áéíóúàèìòùäëïöü"
 ALLOWED_CHARS_TRIGGERS = ALLOWED_CHARS_PUNS + "^$.*+?(){}\\[]<>=-"
 
 
+# ════════════════════════════════════════════════════════════════
+# LOGGING
+# ════════════════════════════════════════════════════════════════
+logging.basicConfig(
+    level=os.environ.get("LOG_LEVEL", "INFO").upper(),
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+logger = logging.getLogger("rubencio")
+
+if not HAS_REGEX_TIMEOUT:
+    logger.warning(
+        "Librería 'regex' no instalada. Protección ReDoS limitada a heurística. "
+        "Instala con: pip install regex"
+    )
+
+
+# ════════════════════════════════════════════════════════════════
+# ENTORNO
+# ════════════════════════════════════════════════════════════════
 def _require_env(name: str) -> str:
     value = os.environ.get(name)
     if not value:
-        print(f"[FATAL] Variable de entorno faltante: {name}")
+        logger.critical("Variable de entorno faltante: %s", name)
         sys.exit(1)
     return value
 
 
-TOKEN  = _require_env("TOKEN")
-PUNSDB = os.path.expanduser(_require_env("DBLOCATION"))
+TOKEN         = _require_env("TOKEN")
+PUNSDB        = os.path.expanduser(_require_env("DBLOCATION"))
+REQUIRE_ADMIN = os.environ.get("REQUIRE_ADMIN", "1") == "1"
 
 bot = telebot.TeleBot(TOKEN)
 bot.skip_pending = True
 
 
 # ════════════════════════════════════════════════════════════════
-# UTILIDADES
+# UTILIDADES GENERALES
 # ════════════════════════════════════════════════════════════════
 def safe(text) -> str:
-    """
-    Escapa texto dinámico para usarlo dentro de un mensaje con
-    parse_mode='HTML'. Solo escapa <, > y & (los 3 caracteres que
-    Telegram interpreta como HTML). NO escapa comillas para que se
-    vean limpias en pantalla.
-    """
+    """Escapa <, >, & para parse_mode='HTML' (no escapa comillas)."""
     return html_escape(str(text), quote=False)
 
 
 @contextmanager
 def db_connect(dbfile: str = PUNSDB):
-    """Context manager para conexiones SQLite (siempre cierra)."""
     conn = sqlite3.connect(dbfile)
     try:
         yield conn
     finally:
         conn.close()
-
-
-def is_valid_regex(regexp: str) -> bool:
-    try:
-        re.compile(regexp)
-        return True
-    except re.error:
-        return False
 
 
 def strip_accents(text: str) -> str:
@@ -97,8 +127,63 @@ def strip_accents(text: str) -> str:
     )
 
 
+def is_valid_regex(pattern: str) -> bool:
+    try:
+        re.compile(pattern)
+        return True
+    except re.error:
+        return False
+
+
+def is_valid_uuid(value: str) -> bool:
+    try:
+        uuid.UUID(value)
+        return True
+    except (ValueError, AttributeError):
+        return False
+
+
+def _extract_arg(message) -> str:
+    """Devuelve el argumento de un comando (soporta /cmd@bot)."""
+    if not message.text:
+        return ""
+    parts = message.text.split(None, 1)
+    return parts[1].strip() if len(parts) > 1 else ""
+
+
+# ─── Rate limiting en memoria ───────────────────────────────────
+_rate_limit: dict[int, list[float]] = {}
+
+
+def rate_limit_ok(user_id: int, max_calls: int, window: int = RATE_WINDOW) -> bool:
+    """True si el usuario puede hacer otra llamada. Limpia entradas viejas."""
+    now = time.time()
+    entries = [t for t in _rate_limit.get(user_id, []) if now - t < window]
+    if len(entries) >= max_calls:
+        _rate_limit[user_id] = entries
+        return False
+    entries.append(now)
+    _rate_limit[user_id] = entries
+    return True
+
+
+# ─── Comprobación de admin ──────────────────────────────────────
+def is_admin(chat_id: int, user_id: int) -> bool:
+    if not REQUIRE_ADMIN:
+        return True
+    if chat_id > 0:              # chat privado: el usuario es "admin" de su chat
+        return True
+    try:
+        member = bot.get_chat_member(chat_id, user_id)
+        return member.status in ("administrator", "creator")
+    except Exception as exc:
+        logger.warning("Error verificando admin (chat=%s, user=%s): %s",
+                       chat_id, user_id, exc)
+        return False
+
+
+# ─── Miembros del chat (compatibilidad) ─────────────────────────
 def get_member_count(chat_id: int) -> int:
-    """Compatible con pyTelegramBotAPI viejo y nuevo."""
     for name in ("get_chat_member_count", "get_chat_members_count"):
         method = getattr(bot, name, None)
         if method is None:
@@ -108,6 +193,56 @@ def get_member_count(chat_id: int) -> int:
         except Exception:
             continue
     return 0
+
+
+# ════════════════════════════════════════════════════════════════
+# REGEX SEGURO
+# ════════════════════════════════════════════════════════════════
+from functools import lru_cache
+
+
+@lru_cache(maxsize=512)
+def _compile_pattern(pattern: str):
+    """Compila y cachea un patrón. Devuelve None si es inválido."""
+    try:
+        if HAS_REGEX_TIMEOUT:
+            return regex_engine.compile(pattern)
+        return re.compile(pattern)
+    except Exception:
+        return None
+
+
+def check_regex_safety(pattern: str) -> tuple[bool, str]:
+    """Heurística anti-ReDoS. Devuelve (seguro, razón)."""
+    if not pattern:
+        return False, "vacío"
+    if len(pattern) > MAX_TRIGGER_LEN:
+        return False, f"más de {MAX_TRIGGER_LEN} caracteres"
+    if not is_valid_regex(pattern):
+        return False, "regex inválido"
+    if pattern.count("(") != pattern.count(")"):
+        return False, "paréntesis desbalanceados"
+    if pattern.count("[") != pattern.count("]"):
+        return False, "corchetes desbalanceados"
+    if pattern.count("(") > MAX_GROUPS_IN_REGEX:
+        return False, f"más de {MAX_GROUPS_IN_REGEX} grupos"
+    # Cuantificadores anidados: (X+)+, (X*){2,}, (X{1,2})*, etc.
+    if re.search(r"\([^()]*(?:[+*]|\{\d+,\d*\})[^()]*\)[+*{]", pattern):
+        return False, "cuantificadores anidados (riesgo ReDoS)"
+    return True, ""
+
+
+def safe_regex_match(pattern: str, text: str) -> bool:
+    """Matchea con timeout si regex está disponible. Nunca lanza excepción."""
+    compiled = _compile_pattern(pattern)
+    if compiled is None:
+        return False
+    try:
+        if HAS_REGEX_TIMEOUT:
+            return compiled.fullmatch(text, timeout=REGEX_TIMEOUT) is not None
+        return compiled.fullmatch(text) is not None
+    except Exception:
+        return False
 
 
 # ════════════════════════════════════════════════════════════════
@@ -131,7 +266,6 @@ def db_setup(dbfile: str = PUNSDB) -> None:
                            silence    INTEGER,
                            efectivity INTEGER,
                            UNIQUE(chatid))""")
-        # Índices para acelerar find_pun (se ejecuta en cada mensaje)
         cur.execute("CREATE INDEX IF NOT EXISTS idx_puns_chatid  ON puns(chatid)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_puns_trigger ON puns(trigger)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_valid_punid  ON validations(punid, chatid)")
@@ -144,7 +278,7 @@ def db_setup(dbfile: str = PUNSDB) -> None:
 
 def load_default_puns(dbfile: str, punsfile: str) -> None:
     if not os.path.isfile(punsfile):
-        print(f"[WARN] Archivo de puns por defecto no encontrado: {punsfile}")
+        logger.warning("Archivo de puns por defecto no encontrado: %s", punsfile)
         return
 
     with db_connect(dbfile) as conn, open(punsfile, "r", encoding="utf-8") as fh:
@@ -153,15 +287,23 @@ def load_default_puns(dbfile: str, punsfile: str) -> None:
             if not line or line.lstrip().startswith("#"):
                 continue
 
-            parts = line.split("|")
+            parts = line.split("|", 1)
             if len(parts) != 2:
-                print(f"[WARN] Línea {number} incorrecta en {punsfile}. No agregada")
+                logger.warning("Línea %s incorrecta en %s", number, punsfile)
                 continue
 
             trigger, pun = parts[0].strip(), parts[1].strip()
 
-            if not is_valid_regex(trigger):
-                print(f"[WARN] Regex inválido '{trigger}' (línea {number}). No agregado")
+            if not trigger or not pun:
+                logger.warning("Línea %s vacía en %s", number, punsfile)
+                continue
+            if len(trigger) > MAX_TRIGGER_LEN or len(pun) > MAX_PUN_LEN:
+                logger.warning("Línea %s excede longitud máxima en %s", number, punsfile)
+                continue
+
+            safe_ok, reason = check_regex_safety(trigger)
+            if not safe_ok:
+                logger.warning("Trigger inseguro '%s' (línea %s): %s", trigger, number, reason)
                 continue
 
             exists = conn.execute(
@@ -176,10 +318,10 @@ def load_default_puns(dbfile: str, punsfile: str) -> None:
                 (str(uuid.uuid4()), 0, trigger, pun),
             )
             conn.commit()
-            print(f'[OK] Añadida combinación por defecto "{pun}" para "{trigger}"')
+            logger.info("Default pun añadido (trigger=%s)", trigger)
 
 
-# ─── Helpers de opciones de chat ────────────────────────────────
+# ─── Opciones de chat ───────────────────────────────────────────
 def load_chat_options(chatid) -> dict:
     with db_connect() as conn:
         row = conn.execute(
@@ -230,7 +372,15 @@ def efectivity(chat_id) -> int:
 
 
 def is_efective(chat_id) -> bool:
-    return random.randint(0, 100) <= efectivity(chat_id)
+    # secrets.randbelow(101) devuelve 0..100 uniformemente
+    return secrets.randbelow(101) <= efectivity(chat_id)
+
+
+def count_chat_triggers(chat_id) -> int:
+    with db_connect() as conn:
+        return conn.execute(
+            "SELECT COUNT(*) FROM puns WHERE chatid = ?", (chat_id,)
+        ).fetchone()[0]
 
 
 # ─── Búsqueda de puns ───────────────────────────────────────────
@@ -245,8 +395,11 @@ def find_pun(message) -> str | None:
         return None
 
     last_word = strip_accents(clean_text[-1])
-    chat_id   = message.chat.id
-    enough    = get_member_count(chat_id) >= REQUIRED_VALIDATIONS
+    if len(last_word) > MAX_LAST_WORD_LEN:
+        return None
+
+    chat_id = message.chat.id
+    enough  = get_member_count(chat_id) >= REQUIRED_VALIDATIONS
 
     with db_connect() as conn:
         triggers = conn.execute(
@@ -257,16 +410,10 @@ def find_pun(message) -> str | None:
         candidates: list[str] = []
 
         for (trigger,) in triggers:
-            if not is_valid_regex(trigger):
-                continue
+            normalized = strip_accents(trigger)
+            pattern = "^" + normalized + "$"
 
-            normalized_trigger = strip_accents(trigger)
-            try:
-                regexp = re.compile("^" + normalized_trigger + "$")
-            except re.error:
-                continue
-
-            if not regexp.match(last_word):
+            if not safe_regex_match(pattern, last_word):
                 continue
 
             rows = conn.execute(
@@ -277,6 +424,8 @@ def find_pun(message) -> str | None:
             ).fetchall()
 
             for pun_uuid, pun_text, pun_chatid in rows:
+                if not pun_text or not pun_text.split():
+                    continue
                 if strip_accents(pun_text.split()[-1]) == last_word:
                     continue
 
@@ -305,13 +454,13 @@ def find_pun(message) -> str | None:
 def cmd_help(message):
     text = (
         "<b>Comandos disponibles</b>\n"
-        "/radd  palabra|combinación  — Agregar combinación (devuelve UUID)\n"
-        "/rdel  &lt;uuid|palabra&gt;       — Eliminar combinación\n"
+        "/radd  palabra|combinación  — Agregar combinación (admin)\n"
+        "/rdel  &lt;uuid|palabra&gt;       — Eliminar combinación (admin)\n"
         "/rlist                      — Listar combinaciones\n"
         "/rsi   &lt;uuid&gt;               — Aprobar combinación\n"
         "/rno   &lt;uuid&gt;               — Prohibir combinación\n"
-        "/rset  &lt;1-100&gt;              — Probabilidad de responder\n"
-        "/roff  &lt;minutos&gt;            — Silenciar el bot\n"
+        "/rset  &lt;1-100&gt;              — Probabilidad de responder (admin)\n"
+        "/roff  &lt;minutos&gt;            — Silenciar el bot (admin)\n"
         "/rchat                      — Estado del chat\n\n"
         f"Las combinaciones se habilitan cuando el karma supera {REQUIRED_VALIDATIONS} "
         f"en grupos con más de {REQUIRED_VALIDATIONS} personas.\n"
@@ -334,7 +483,15 @@ def cmd_status(message):
 
 @bot.message_handler(commands=["radd"])
 def cmd_add(message):
-    quote = message.text.replace("/radd", "", 1)
+    if not is_admin(message.chat.id, message.from_user.id):
+        bot.reply_to(message, "Solo administradores pueden usar /radd.")
+        return
+
+    if not rate_limit_ok(message.from_user.id, RATE_MAX_ADMIN):
+        bot.reply_to(message, "Demasiadas solicitudes. Espera un momento.")
+        return
+
+    quote = _extract_arg(message)
     if "|" not in quote:
         bot.reply_to(message, "Sintaxis no válida. Uso: /radd palabra|combinación")
         return
@@ -342,6 +499,16 @@ def cmd_add(message):
     trigger, pun = (p.strip() for p in quote.split("|", 1))
     if not trigger or not pun:
         bot.reply_to(message, "Sintaxis no válida. Uso: /radd palabra|combinación")
+        return
+
+    if len(trigger) > MAX_TRIGGER_LEN:
+        bot.reply_to(message, f"El trigger no puede superar {MAX_TRIGGER_LEN} caracteres.")
+        return
+    if len(pun) > MAX_PUN_LEN:
+        bot.reply_to(message, f"La combinación no puede superar {MAX_PUN_LEN} caracteres.")
+        return
+    if "\n" in trigger or "\r" in trigger or "\n" in pun or "\r" in pun:
+        bot.reply_to(message, "No se permiten saltos de línea.")
         return
 
     for ch in trigger:
@@ -352,8 +519,16 @@ def cmd_add(message):
             )
             return
 
-    if not is_valid_regex(trigger):
-        bot.reply_to(message, f"Regex no válido: '{trigger}'")
+    safe_ok, reason = check_regex_safety(trigger)
+    if not safe_ok:
+        bot.reply_to(message, f"Trigger rechazado: {reason}")
+        return
+
+    if count_chat_triggers(message.chat.id) >= MAX_TRIGGERS_PER_CHAT:
+        bot.reply_to(
+            message,
+            f"Este chat alcanzó el límite de {MAX_TRIGGERS_PER_CHAT} combinaciones.",
+        )
         return
 
     with db_connect() as conn:
@@ -376,7 +551,6 @@ def cmd_add(message):
         )
         conn.commit()
 
-    # Escapamos TODO contenido dinámico para parse_mode="HTML"
     safe_trigger = safe(trigger)
     safe_uuid    = safe(pun_uuid)
 
@@ -394,29 +568,40 @@ def cmd_add(message):
         )
 
     bot.reply_to(message, msg, parse_mode="HTML")
-    print(f'[OK] Pun "{pun}" con trigger "{trigger}" añadido al chat {message.chat.id}')
+    logger.info("Pun añadido al chat %s por usuario %s",
+                message.chat.id, message.from_user.id)
 
 
-@bot.message_handler(commands=["rdel"])
+@bot.message_handler(commands=["rd"])
 def cmd_delete(message):
-    quote = message.text.replace("/rdel", "", 1).strip()
+    if not is_admin(message.chat.id, message.from_user.id):
+        bot.reply_to(message, "Solo administradores pueden usar /rdel.")
+        return
+
+    if not rate_limit_ok(message.from_user.id, RATE_MAX_ADMIN):
+        bot.reply_to(message, "Demasiadas solicitudes. Espera un momento.")
+        return
+
+    quote = _extract_arg(message)
     if not quote:
         bot.reply_to(message, "Falta el UUID. Uso: /rdel <uuid|palabra>")
         return
 
     with db_connect() as conn:
-        row = conn.execute(
-            "SELECT uuid FROM puns WHERE chatid = ? AND uuid = ?",
-            (message.chat.id, quote),
-        ).fetchone()
-        if row is None:
+        row = None
+        if is_valid_uuid(quote):
+            row = conn.execute(
+                "SELECT uuid FROM puns WHERE chatid = ? AND uuid = ?",
+                (message.chat.id, quote),
+            ).fetchone()
+        if row is None:                          # fallback por trigger exacto
             row = conn.execute(
                 "SELECT uuid FROM puns WHERE chatid = ? AND trigger = ?",
                 (message.chat.id, quote),
             ).fetchone()
 
         if row is None:
-            bot.reply_to(message, f"Combinación '{quote}' no encontrada")
+            bot.reply_to(message, "Combinación no encontrada")
             return
 
         pun_uuid = row[0]
@@ -431,7 +616,8 @@ def cmd_delete(message):
         conn.commit()
 
     bot.reply_to(message, "Combinación eliminada")
-    print(f'[OK] Pun "{pun_uuid}" eliminado del chat {message.chat.id}')
+    logger.info("Pun %s eliminado del chat %s por usuario %s",
+                pun_uuid, message.chat.id, message.from_user.id)
 
 
 def _vote(message, pun_uuid: str, karma: int, action: str) -> None:
@@ -442,7 +628,7 @@ def _vote(message, pun_uuid: str, karma: int, action: str) -> None:
             (message.chat.id, pun_uuid),
         ).fetchone()
         if row is None:
-            bot.reply_to(message, f"UUID {pun_uuid} no encontrado")
+            bot.reply_to(message, "UUID no encontrado en este chat")
             return
 
         trigger = row[0]
@@ -455,7 +641,7 @@ def _vote(message, pun_uuid: str, karma: int, action: str) -> None:
         if already:
             bot.reply_to(
                 message,
-                f'Ya has {action} "{trigger}". Solo se permite una vez por usuario.',
+                f"Ya has {action} esta combinación. Solo se permite una vez por usuario.",
             )
             return
 
@@ -470,30 +656,52 @@ def _vote(message, pun_uuid: str, karma: int, action: str) -> None:
             (message.chat.id, pun_uuid),
         ).fetchone()[0] or 0
 
-    bot.reply_to(message, f'Gracias por elegir "{trigger}". El karma es {total}')
+    bot.reply_to(message, f"Gracias por elegir esta combinación. El karma es {total}")
 
 
 @bot.message_handler(commands=["rsi"])
 def cmd_approve(message):
-    pun_uuid = message.text.replace("/rsi", "", 1).strip()
+    if not rate_limit_ok(message.from_user.id, RATE_MAX_VOTE):
+        bot.reply_to(message, "Demasiadas solicitudes. Espera un momento.")
+        return
+
+    pun_uuid = _extract_arg(message)
     if not pun_uuid:
         bot.reply_to(message, "Falta el UUID. Uso: /rsi <uuid>")
+        return
+    if not is_valid_uuid(pun_uuid):
+        bot.reply_to(message, "UUID no válido.")
         return
     _vote(message, pun_uuid, karma=1, action="aprobado")
 
 
 @bot.message_handler(commands=["rno"])
 def cmd_ban(message):
-    pun_uuid = message.text.replace("/rno", "", 1).strip()
+    if not rate_limit_ok(message.from_user.id, RATE_MAX_VOTE):
+        bot.reply_to(message, "Demasiadas solicitudes. Espera un momento.")
+        return
+
+    pun_uuid = _extract_arg(message)
     if not pun_uuid:
         bot.reply_to(message, "Falta el UUID. Uso: /rno <uuid>")
+        return
+    if not is_valid_uuid(pun_uuid):
+        bot.reply_to(message, "UUID no válido.")
         return
     _vote(message, pun_uuid, karma=-1, action="prohibido")
 
 
 @bot.message_handler(commands=["roff"])
 def cmd_silence(message):
-    quote = message.text.replace("/roff", "", 1).strip()
+    if not is_admin(message.chat.id, message.from_user.id):
+        bot.reply_to(message, "Solo administradores pueden usar /roff.")
+        return
+
+    if not rate_limit_ok(message.from_user.id, RATE_MAX_ADMIN):
+        bot.reply_to(message, "Demasiadas solicitudes. Espera un momento.")
+        return
+
+    quote = _extract_arg(message)
     if not quote.isdigit():
         bot.reply_to(message, "Sintaxis no válida. Uso: /roff <minutos>")
         return
@@ -503,7 +711,7 @@ def cmd_silence(message):
         bot.reply_to(message, "El tiempo debe ser mayor a 0")
         return
     if minutes > MAX_SILENCE_MINUTES:
-        bot.reply_to(message, "Desactivar a Rubencio durante más de una hora no es divertido")
+        bot.reply_to(message, "Desactivar a Rubencio durante más de una hora no es divertido ☹️")
         return
 
     options = load_chat_options(message.chat.id)
@@ -513,7 +721,7 @@ def cmd_silence(message):
     new_end = base + minutes * 60
 
     if new_end - now > MAX_SILENCE_MINUTES * 60:
-        bot.reply_to(message, "Desactivar a Rubencio durante más de una hora no es divertido")
+        bot.reply_to(message, "Desactivar a Rubencio durante más de una hora no es divertido ☹️")
         return
 
     options["silence"] = new_end
@@ -527,7 +735,15 @@ def cmd_silence(message):
 
 @bot.message_handler(commands=["rset"])
 def cmd_set(message):
-    quote = message.text.replace("/rset", "", 1).strip()
+    if not is_admin(message.chat.id, message.from_user.id):
+        bot.reply_to(message, "Solo administradores pueden usar /rset.")
+        return
+
+    if not rate_limit_ok(message.from_user.id, RATE_MAX_ADMIN):
+        bot.reply_to(message, "Demasiadas solicitudes. Espera un momento.")
+        return
+
+    quote = _extract_arg(message)
     if not quote.isdigit() or not (0 <= int(quote) <= 100):
         bot.reply_to(message, "Probabilidad no válida. Uso: /rset <1-100>")
         return
@@ -551,7 +767,7 @@ def cmd_list(message):
     header = "| uuid | status (karma) | trigger | pun\n"
 
     with db_connect() as conn:
-        rows   = conn.execute(
+        rows = conn.execute(
             "SELECT uuid, chatid, trigger, pun FROM puns "
             "WHERE chatid = ? OR chatid = 0 ORDER BY chatid",
             (message.chat.id,),
@@ -580,7 +796,7 @@ def cmd_list(message):
 
             lines.append(f"| {pun_uuid} | {status} | {trigger} | {pun}")
 
-    # Paginación robusta (sin parse_mode → no hace falta escapar)
+    # Paginación (sin parse_mode → texto plano, no hace falta escapar)
     chunk = header
     for line in lines:
         candidate = chunk + line + "\n"
@@ -609,7 +825,7 @@ def echo_all(message):
 
     rima = find_pun(message)
     if rima is not None:
-        # Sin parse_mode → el pun se muestra tal cual, sin necesidad de escapar
+        # Sin parse_mode → el pun se muestra tal cual
         bot.reply_to(message, rima)
 
 
@@ -618,12 +834,14 @@ def echo_all(message):
 # ════════════════════════════════════════════════════════════════
 def main() -> None:
     db_setup(dbfile=PUNSDB)
-    print(f"Rubencio {VERSION} listo para los puns!")
+    logger.info("Rubencio %s listo para los puns!", VERSION)
     try:
-        bot.polling(none_stop=True)
+        try:
+            bot.infinity_polling(timeout=30, long_polling_timeout=25)
+        except AttributeError:
+            bot.polling(none_stop=True)
     except KeyboardInterrupt:
-        print("\nDetenido por el usuario")
-
+        logger.info("Detenido por el usuario")
 
 if __name__ == "__main__":
     main()
